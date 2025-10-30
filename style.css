@@ -1,1 +1,19 @@
+:root {
+  --accent-dark: #334443;
+  --accent: #016B61;
+}
+body {
+  font-family: "Inter", sans-serif;
+  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  color: white;
+}
+a {
+  transition: 0.2s;
+}
+a:hover {
+  opacity: 0.9;
+}
+input, textarea {
+  outline: none;
+}
 

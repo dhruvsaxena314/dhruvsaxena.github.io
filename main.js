@@ -1,6 +1,7 @@
-// main.js — final version with gradient green headings + animated name
-const ACC_DARK = '#334443';
+// main.js — FINAL PORTFOLIO VERSION (green headings, message form, icons)
 const ACC = '#016B61';
+const ACC_DARK = '#334443';
+const FORM_ENDPOINT = "https://formspree.io/f/xzzkvjjk";  // your live Formspree link
 
 function getBlogs(){return JSON.parse(localStorage.getItem("blogs")||"[]");}
 function saveBlogs(b){localStorage.setItem("blogs",JSON.stringify(b));}
@@ -14,8 +15,8 @@ const PROFILE={
   linkedin:"https://www.linkedin.com/in/dhruv-saxena-3a2b4e7a/",
   github:"https://github.com/dhruvisgood",
   researchgate:"https://www.researchgate.net/profile/Dhruv-Saxena-11",
-  miniSummary:"Young AI researcher from Varanasi merging scientific research, open-source ML, and leadership to build ethical, reproducible AI tools.",
-  summary:"ResearchGate Fellow with background in AI, NLP, CV and academic collaboration (IIT-BHU, Cambridge). Passionate about reproducible and human-centric AI.",
+  miniSummary:"Young AI researcher from Varanasi merging research, open-source ML, and leadership to build ethical, reproducible AI tools.",
+  summary:"ResearchGate Fellow with experience in AI, NLP, CV and academic collaboration with IIT-BHU and Cambridge. Passionate about reproducible, ethical AI.",
   accomplishments:[
     "ResearchGate Fellow","ImagoPedia (AI Tool)","Next Voters Fellow","Perplexity Student Partner","InternShala Student Partner","INSPIRE MANAK awardee","NVIDIA DLI — LLM development certified","IBM — Quantum Computing certified","GeeksForGeeks — CS & Math certified"
   ],
@@ -37,6 +38,7 @@ function App(){
   const[blogs,setBlogs]=React.useState(getBlogs());
   const[authorized,setAuthorized]=React.useState(false);
   const[showMenu,setShowMenu]=React.useState(false);
+  const[showMsg,setShowMsg]=React.useState(false);
 
   React.useEffect(()=>{
     const stages=[{dur:500,rate:0.35},{dur:900,rate:0.12},{dur:600,rate:0.6},{dur:300,rate:1.5}];
@@ -48,14 +50,14 @@ function App(){
       }requestAnimationFrame(step);}tick();
   },[]);
   React.useEffect(()=>{if(!opened)return;const target={papers:8,projects:6,awards:9};
-    const start=performance.now();
-    function frame(now){const t=Math.min(1,(now-start)/1800);const ease=t<0.5?2*t*t:-1+(4-2*t)*t;
+    const start=performance.now();function frame(now){const t=Math.min(1,(now-start)/1800);const ease=t<0.5?2*t*t:-1+(4-2*t)*t;
       setStats({papers:Math.round(target.papers*ease),projects:Math.round(target.projects*ease),awards:Math.round(target.awards*ease)});
       if(t<1)requestAnimationFrame(frame);}requestAnimationFrame(frame);
   },[opened]);
 
   function addBlog(title,content){const b={id:Date.now(),title,content,date:new Date().toLocaleString()};
     const arr=[b,...blogs];setBlogs(arr);saveBlogs(arr);}
+  function sendMessage(e){e.preventDefault();fetch(FORM_ENDPOINT,{method:"POST",body:new FormData(e.target),headers:{Accept:"application/json"}}).then(()=>{alert("Message sent successfully!");setShowMsg(false);e.target.reset();}).catch(()=>alert("Failed to send."));}
 
   if(page==="blogs"){
     return(<div className="max-w-5xl mx-auto p-6 space-y-6">
@@ -75,21 +77,18 @@ function App(){
   return(
   <div className="relative max-w-6xl mx-auto px-6 py-10 space-y-6" style={{'--accent':ACC,'--accent-dark':ACC_DARK}}>
     <style>{`
-      @keyframes shine {
-        0%{background-position:0% 50%}
-        50%{background-position:100% 50%}
-        100%{background-position:0% 50%}
-      }
+      @keyframes shine{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
     `}</style>
 
+    {/* Top menu */}
     <button onClick={()=>setShowMenu(!showMenu)} className="fixed top-4 left-4 z-50 text-2xl font-bold bg-[var(--accent)]/20 hover:bg-[var(--accent)]/40 px-3 py-1 rounded-md">☰</button>
     {showMenu&&(<div className="fixed top-14 left-4 bg-[var(--accent-dark)]/80 backdrop-blur-md rounded-xl p-3 space-y-2 z-40">
       <button className="block w-full text-left hover:bg-[var(--accent)]/20 rounded px-2 py-1" onClick={()=>{setPage('home');setShowMenu(false);}}>🏠 Home</button>
       <button className="block w-full text-left hover:bg-[var(--accent)]/20 rounded px-2 py-1" onClick={()=>{setPage('blogs');setShowMenu(false);}}>📝 Blogs</button>
-      {!authorized&&<button className="block w-full text-left hover:bg-[var(--accent)]/20 rounded px-2 py-1" onClick={()=>{const e=prompt("Enter authorized email:");if(e==="dhruvisgood13@gmail.com"){setAuthorized(true);alert("Blog editor unlocked.");}else alert("Access denied.");}}>🔒 Admin Login</button>}
-      {authorized&&<button className="block w-full text-left hover:bg-[var(--accent)]/20 rounded px-2 py-1" onClick={()=>setAuthorized(false)}>🔓 Logout Admin</button>}
+      <button className="block w-full text-left hover:bg-[var(--accent)]/20 rounded px-2 py-1" onClick={()=>setShowMsg(true)}>💬 Message</button>
     </div>)}
 
+    {/* Header */}
     <header className="flex flex-col md:flex-row justify-between items-center gap-3">
       <div className="flex items-center gap-6">
         <div className="relative">
@@ -102,37 +101,56 @@ function App(){
           <p className="mt-2 text-white/70 text-sm italic">{PROFILE.miniSummary}</p>
         </div>
       </div>
-      <div className="flex gap-3 flex-wrap justify-center mt-3 md:mt-0">
-        <a href="dhruv_cv.pdf" className="px-4 py-2 bg-[var(--accent)]/30 hover:bg-[var(--accent)]/50 rounded-lg" target="_blank">Resume</a>
-        <a href={PROFILE.linkedin} className="px-4 py-2 bg-[var(--accent)]/30 hover:bg-[var(--accent)]/50 rounded-lg" target="_blank">LinkedIn</a>
-        <a href={PROFILE.github} className="px-4 py-2 bg-[var(--accent)]/30 hover:bg-[var(--accent)]/50 rounded-lg" target="_blank">GitHub</a>
-        <a href={PROFILE.researchgate} className="px-4 py-2 bg-[var(--accent)]/30 hover:bg-[var(--accent)]/50 rounded-lg" target="_blank">ResearchGate</a>
+
+      {/* Icons */}
+      <div className="flex gap-4 mt-3 md:mt-0">
+        <a href="dhruv_cv.pdf" title="Resume" target="_blank"><img src="resume.svg" className="w-8 h-8 hover:scale-110 transition-transform"/></a>
+        <a href={PROFILE.linkedin} target="_blank"><img src="linkedin.svg" className="w-8 h-8 hover:scale-110 transition-transform"/></a>
+        <a href={PROFILE.github} target="_blank"><img src="github.svg" className="w-8 h-8 hover:scale-110 transition-transform"/></a>
+        <a href={PROFILE.researchgate} target="_blank"><img src="researchgate.svg" className="w-8 h-8 hover:scale-110 transition-transform"/></a>
       </div>
     </header>
 
+    {/* Sections */}
     <section className="grid md:grid-cols-3 gap-6">
       <aside className="space-y-4">
         <Card title="Profile"><p className="text-sm text-white/80">{PROFILE.summary}</p></Card>
-        <div className="bg-white/10 p-4 rounded-xl text-center">
-          <h2 className="font-semibold mb-4 text-[var(--accent)]">Quick Stats</h2>
-          <div className="flex justify-around text-[var(--accent)]">
+        <Card title="Quick Stats">
+          <div className="flex justify-around text-[var(--accent)] mt-2">
             <Stat label="Papers" value={stats.papers}/>
             <Stat label="Projects" value={stats.projects}/>
             <Stat label="Awards" value={stats.awards}/>
           </div>
-        </div>
-        <SkillsBlock/>
-        <LangBlock/>
+        </Card>
+        <SkillsBlock/><LangBlock/>
       </aside>
 
       <main className="md:col-span-2 space-y-4">
         <Card title="Projects & Research">{PROFILE.projects.map(p=>(<div key={p.title} className="mb-3"><div className="font-medium text-[var(--accent)]">{p.title}</div><div className="text-xs text-white/70">{p.desc}</div></div>))}</Card>
         <Card title="Education"><p className="text-sm">{PROFILE.education.school}</p><p className="text-xs text-white/70 mt-1">{PROFILE.education.notes}</p></Card>
         <Card title="Accomplishments"><ul className="list-disc pl-5 text-sm space-y-1">{PROFILE.accomplishments.map(a=><li key={a}>{a}</li>)}</ul></Card>
-        <Card title="Contact"><p className="text-sm">{PROFILE.email} | {PROFILE.phone}</p></Card>
       </main>
     </section>
-    <footer className="text-center text-white/60 text-sm">© {new Date().getFullYear()} {PROFILE.name} • Built with React + Tailwind</footer>
+
+    <footer className="text-center text-white/60 text-sm mt-6">© {new Date().getFullYear()} {PROFILE.name} • Built with React + Tailwind</footer>
+
+    {/* Message modal */}
+    {showMsg&&(
+      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+        <div className="bg-[#1e1e1e] p-6 rounded-xl w-[90%] max-w-md">
+          <h2 className="text-2xl font-bold text-[var(--accent)] mb-4">Send a Message</h2>
+          <form onSubmit={sendMessage} className="space-y-3">
+            <input name="name" required placeholder="Your Name" className="w-full p-2 bg-white/10 rounded"/>
+            <input name="email" required placeholder="Your Email" className="w-full p-2 bg-white/10 rounded"/>
+            <textarea name="message" required rows="4" placeholder="Message..." className="w-full p-2 bg-white/10 rounded"/>
+            <div className="flex justify-between">
+              <button type="button" onClick={()=>setShowMsg(false)} className="px-3 py-2 bg-white/10 rounded">Cancel</button>
+              <button type="submit" className="px-4 py-2 bg-[var(--accent)] rounded text-white">Send</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
   </div>);
 }
 
